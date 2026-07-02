@@ -1,0 +1,307 @@
+.loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--appearance-main-background-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.catalog {
+  max-height: none;
+}
+
+.catalogItem_title {
+  color: var(--appearance-header-text-color);
+  font-size: 20px;
+  font-weight: 600;
+  margin: 20px 0 15px;
+  padding: 8px 17px;
+  width: 100%;
+  background: var(--appearance-main-background-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer !important;
+}
+
+.catalogItem_cards {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  padding: 0 4px;
+  width: 100%;
+  overflow: auto;
+
+  @media (max-width: 1300px) {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  @media (max-width: 920px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  @media (max-width: 550px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.catalogItem_loading,
+.catalogItem_pending {
+  min-height: 380px;
+}
+
+.catalogItem_loading {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.home .catalogItem_cards {
+  display: flex !important;
+  width: 100%;
+  overflow: auto;
+  gap: 10px;
+}
+
+.catalogItem_card {
+  border-radius: 8px;
+  background-color: var(--appearance-product-card-background-color);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  max-width: 230px;
+  min-width: 170px;
+  gap: 5px;
+}
+
+.home .catalogItem_card {
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
+  height: 380px;
+  max-height: 380px !important;
+}
+
+.product-img-link {
+  width: 100%;
+  position: relative;
+
+  img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 8px;
+    border: none;
+    line-height: 0;
+    margin-bottom: 6px;
+    object-fit: cover;
+  }
+}
+
+.mark_discount {
+  width: fit-content;
+  height: 24px;
+  border-top-right-radius: 8px;
+  padding: 0 4px;
+  border-bottom-left-radius: 8px;
+  background-color: var(--appearance-product-card-discount-background-color);
+  display: grid;
+  place-items: center;
+  color: var(--appearance-product-card-discount-text-color);
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  z-index: 10;
+  font-size: 17px;
+}
+
+/* Rasm blur effekti uchun qo'shimcha */
+
+.product-image.loading {
+  filter: blur(10px);
+  opacity: 0.7;
+}
+
+.product-image.loaded {
+  filter: blur(0px);
+  opacity: 1;
+}
+
+.mark_new_product {
+  position: absolute;
+  top: 100%;
+  transform: translateY(-100%);
+  right: 0;
+  width: 100%;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--appearance-product-card-new-background-color);
+  border-radius: 0 0 8px 8px;
+  color: var(--appearance-product-card-new-text-color);
+  font-size: 12px;
+}
+
+.name {
+  color: var(--appearance-product-card-header-text-color);
+  font-size: 12px;
+  line-height: 1.2;
+  margin-top: 5px;
+  max-height: calc(1.2em * 2);
+  margin-bottom: 0;
+  width: 100%;
+  overflow: hidden;
+  display: -webkit-box; /* 1 */
+  -webkit-line-clamp: 1; /* 1 */
+  -webkit-box-orient: vertical; /* 1 */
+  font-weight: 600;
+  word-break: auto-phrase; /* 2 */
+  /* white-space: nowrap; */ /* 3 */
+}
+
+.weight {
+  color: var(--appearance-product-card-description-text-color);
+  font-size: 12px;
+  width: 100%;
+}
+
+.price {
+  margin-top: auto;
+  user-select: none;
+  padding: 0 0 1px 0;
+  width: 100%;
+  background-color: var(--appearance-product-card-price-background-color);
+  color: var(--appearance-product-card-price-text-color);
+  box-shadow: none;
+  align-items: center;
+  border-radius: 8px;
+  display: flex;
+  cursor: pointer;
+  flex-wrap: wrap;
+  font-size: 13px;
+  line-height: 0;
+  justify-content: center;
+  height: 34px;
+}
+
+.price.notInStock {
+  background: var(--appearance-product-card-not-available-background-color);
+  color: var(--appearance-product-card-not-available-text-color);
+}
+
+.cic-minus,
+.cic-plus {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  height: 100%;
+  width: 40px;
+}
+
+.cic-minus {
+  box-shadow: inset 55px 0 20px -22px rgba(0, 0, 0, 0);
+  padding-left: 13px;
+}
+
+.cic-plus {
+  box-shadow: inset -55px 0 20px -22px rgba(0, 0, 0, 0);
+  justify-content: flex-end;
+  padding-right: 13px;
+}
+
+.amount {
+  font-weight: 500;
+}
+
+.add {
+  margin-top: auto;
+  user-select: none;
+  padding: 0 0 1px 0;
+  width: 100%;
+  background-color: var(--appearance-product-card-quantity-background-color);
+  color: var(--appearance-product-card-quantity-text-color);
+  align-items: center;
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 13px;
+  line-height: 1.2;
+  height: 34px;
+  justify-content: space-around;
+  overflow: hidden;
+
+  svg {
+    font-size: 19px;
+  }
+}
+
+/* media */
+
+/* @media screen and (max-width: 600px) { */
+@media screen and (max-width: 768px) {
+  .catalogItem_title {
+    padding: 0 10px;
+  }
+
+  .catalog {
+    margin-bottom: 150px !important;
+  }
+
+  .catalogItem_cards {
+    padding: 0;
+    gap: 10px;
+  }
+}
+
+@media screen and (max-width: 550px) {
+  .mark_new_product {
+    top: 100%;
+    transform: translateY(-100%);
+  }
+}
+
+.product-sizes {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 6px;
+}
+
+.product-size {
+  min-width: 32px;
+  height: 24px;
+  padding: 0 12px;
+  border: 1px solid #d6d6d6;
+  border-radius: 6px;
+  background: #fff;
+  color: #222;
+  font-size: 13px;
+  cursor: pointer;
+  min-width: fit-content;
+}
+
+.product-size.active {
+  border: 2px solid var(--appearance-active-main-button-background-color);
+}
+
+.product-size.in-cart {
+  border-color: #2f80ed;
+}
+
+.product-size.disabled {
+  color: #999;
+  opacity: 0.5;
+  background: #f4f4f4;
+  text-decoration: line-through;
+}

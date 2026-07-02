@@ -1,36 +1,115 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Toymarket — Next.js (Telegram Mini App)
 
-## Getting Started
+Интернет-магазин игрушек Toymarket, перенесённый с Create React App на
+**Next.js 16 (App Router, TypeScript)** с полным сохранением функциональности
+Telegram Mini App.
 
-First, run the development server:
+> Оригинал (CRA) лежит рядом в `../toymarket` и не модифицировался — его можно
+> использовать как эталон.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Стек
+
+- **Next.js 16** (App Router, Turbopack) + **React 19** + **TypeScript**
+- **Redux Toolkit** + **RTK Query** (стейт, корзина, продуктовые запросы)
+- **Telegram Mini App SDK**: `telegram-web-app.js` (локально в `public/`) +
+  хуки-обёртки в `src/lib/telegram.ts`
+- Стили: plain CSS (co-located) + CSS-переменные `--appearance-*`
+  (серверный white-label тема)
+- Бэкенд: `https://api.toymarket.site` (не менялся), URL вынесен в
+  `NEXT_PUBLIC_API_URL`
+
+## Структура
+
+```
+src/
+├── app/                    # Next.js App Router (страницы = роуты)
+│   ├── layout.tsx          # корневой layout: провайдеры + Script Telegram
+│   ├── page.tsx            # /            (главная)
+│   ├── item/[id]/          # /item/:id    (карточка товара)
+│   ├── cart/               # /cart
+│   ├── orders/             # /orders      (защищённый)
+│   ├── orderInfo/[id]/     # /orderInfo/:id (защищённый)
+│   ├── cat/[id]/ type/[id]/ subcat/[id]/ brand/[id]/
+│   ├── search/ new/ auth/
+│   └── not-found.tsx       # 404
+├── components/             # Header, Footer, Banner, Catalog, ProductCard, …
+├── providers/              # Redux, Telegram, Appearance, Toaster, AuthGuard, AppShell
+├── store/                  # Redux store, slices, RTK Query
+├── lib/                    # api, telegram, appearance, utils, structures
+├── hooks/                  # navigation (обёртка над next/navigation)
+└── img/ fonts/             # статика
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Разработка
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev        # http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Дев-прокси `/api/*` → `api.toymarket.site` настроен в `next.config.ts`
+(замена CRA `setupProxy.js`).
 
-## Learn More
+### Тест внутри Telegram Mini App
 
-To learn more about Next.js, take a look at the following resources:
+Telegram требует HTTPS. Для локального теста в реальном Telegram:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# 1. Поднять HTTPS-туннель на локальный dev-сервер
+ngrok http 3000                     # даст https://<id>.ngrok.io
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# 2. В @BotFather → Bot Settings → Menu Button / Web App
+#    указать полученный HTTPS-URL.
 
-## Deploy on Vercel
+# 3. Открыть Mini App в Telegram и проверить.
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Дев-режим `?tmaDebug=1` форсирует мобильную компоновку на десктопе
+(как и в оригинале).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Сборка
+
+```bash
+npm run build      # typecheck + production-сборка (output: standalone)
+npm run start      # запуск production-сервера на :3000
+```
+
+Все роуты помечены `dynamic` (TMA — клиентское приложение, SSR/prerender не
+используется).
+
+## Деплой на VPS (Docker)
+
+`output: "standalone"` в `next.config.ts` создаёт автономный бандл —
+образ получается маленьким.
+
+```bash
+# На сервере (или локально с последующим push образа):
+docker compose up -d --build
+
+# При другом бэкенде:
+NEXT_PUBLIC_API_URL=https://my-api.example docker compose up -d --build
+```
+
+Контейнер слушает порт **3000**. Перед ним обычно ставят nginx/caddy с
+terminating-HTTPS (Telegram требует HTTPS для TMA).
+
+> ⚠️ `NEXT_PUBLIC_*` вшивается в клиентский бандл на этапе сборки, поэтому
+> смена бэкенда требует пересборки образа (`--build-arg`).
+
+## Переменные окружения
+
+| Переменная | По умолчанию | Описание |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | `https://api.toymarket.site` | URL бэкенда (build-time) |
+
+## Чек-лист TMA-функциональности
+
+Перенесено из оригинала и работает:
+- [x] Авторизация через `initData` (`/auth/login/telegram/miniapp`)
+- [x] Telegram Login Widget (браузерный флоу, `ssr: false`)
+- [x] safe-area отступы (`--tg-safe-area-inset-*`)
+- [x] Haptic feedback (Header, Order, OrderInfo)
+- [x] `?tmaDebug=1` режим
+- [x] white-label тема (`--appearance-*` из `/appearance/style`)
+- [x] cookie-сессии (`withCredentials`)
+- [x] cart persistence в `localStorage`

@@ -1,0 +1,359 @@
+"use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useEffect } from "react";
+
+import formatNumber, {
+  getDeclination,
+  useGoBackOrHome,
+} from "@/lib/utils";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import "./OrderInfo.css";
+import { useSelector } from "react-redux";
+import { IoCopyOutline } from "react-icons/io5";
+import arrow2Icon from "@/img/arrow-right.svg";
+import { RiQuestionnaireLine } from "react-icons/ri";
+import { RiFileList3Line } from "react-icons/ri";
+import toast from "react-hot-toast";
+import { FaChevronLeft } from "react-icons/fa6";
+import { useLazyGetProductsByIdQuery } from "@/store/api/productsApi";
+import { useDispatch } from "react-redux";
+import { addToCart } from "@/store/slices/cartSlice";
+import noImg from "@/img/no_img.png";
+import { useNavigate } from "@/hooks/navigation";
+
+function OrderInfo() {
+  const nav = useNavigate();
+  const back = useGoBackOrHome();
+  const dispatch = useDispatch();
+  const { id } = useParams<{ id: string }>();
+  let userInfo = useSelector((state: any) => state.cart.userInfo);
+  const normalizeOrder = (order: any) => ({
+    ...order,
+    orderId: order?.orderId ?? order?.order_id,
+    orderDate: order?.orderDate ?? order?.date ?? order?.order_date,
+    statusName: order?.statusName ?? order?.status_name ?? order?.status,
+    deliveryMethod:
+      order?.deliveryMethod ?? order?.delivery_method ?? order?.delivery,
+    total: order?.total ?? order?.amount,
+    code: order?.code ?? order?.access_code,
+    products: (order?.products ?? order?.items ?? []).map((p: any) => ({
+      ...p,
+      productID: p?.productID ?? p?.product_id ?? p?.id,
+      productTypeID: p?.productTypeID ?? p?.product_type_id ?? p?.type_id,
+      shoeSizeName: p?.shoeSizeName ?? p?.shoe_size_name ?? p?.size,
+      textColor: p?.textColor ?? p?.text_color ?? p?.color,
+      discountedPrice: p?.discountedPrice ?? p?.retail_price ?? p?.price,
+    })),
+  });
+
+  let singleOrder = normalizeOrder(
+    userInfo?.orders?.find((order: any) => {
+      const orderId = order?.orderId ?? order?.order_id;
+      return Number(orderId) === Number(id);
+    }) || {},
+  );
+  let singleOrder_products = singleOrder?.products || [];
+
+  console.log(singleOrder.code);
+
+  const [qrUrl, setQrUrl] = React.useState<any>("");
+
+  const [getProductsById] = useLazyGetProductsByIdQuery();
+
+  useEffect(() => {
+    const fetchQrCode = async () => {
+      try {
+        const response = await fetch(
+          `https://api.toymarket.site/api/img/qrcode/${singleOrder.code}`,
+        );
+        setQrUrl(response.url);
+      } catch (error) {
+        console.error("Error fetching QR code:", error);
+      }
+    };
+
+    fetchQrCode();
+  }, [singleOrder.orderId]);
+
+  const totalCount = singleOrder_products.reduce((acc: any, product: any) => {
+    acc += +product.quantity;
+    return acc;
+  }, 0);
+
+  // Umumiy narxni hisoblash
+
+  const customDate = (orderDate: any) => {
+    let date = new Date(orderDate * 1000).toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    let hour = new Date(orderDate * 1000).toLocaleTimeString("ru-RU", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    return `${date} ${hour}`;
+  };
+
+  const getDisplayQuantity = (inCart: any, product?: any) => {
+    if (!inCart || !product) return 0;
+
+    return inCart.quantity;
+  };
+
+  const getCurrentPrice = (product: any) => {
+    const displayQuantity = getDisplayQuantity(product);
+
+    if (
+      displayQuantity >= (+product.recomendedMinimalSize || Infinity) &&
+      product.discountedPrice
+    ) {
+      return Number(product.discountedPrice); // Chegirmali narx
+    }
+    return Number(product.price); // Asl narx
+  };
+
+  const totalSavings = singleOrder_products?.reduce(
+    (acc: any, product: any) => {
+      const qty = product.quantity;
+
+      if (
+        product.discountedPrice &&
+        product.price &&
+        qty >= (+product.recomendedMinimalSize || Infinity)
+      ) {
+        const saving =
+          (Number(product?.price) - Number(product?.discountedPrice)) * qty;
+        return acc + saving;
+      }
+      return acc;
+    },
+    0,
+  );
+
+  const totalPrice = singleOrder_products?.reduce((acc: any, product: any) => {
+    const displayQuantity = product.quantity;
+    const currentPrice = Number(product.price || product.discountedPrice);
+
+    acc += displayQuantity * currentPrice;
+    return acc;
+  }, 0);
+
+  const ReOrder = async () => {
+    try {
+      const promises = singleOrder_products.map((product: any) =>
+        getProductsById(product.productID).unwrap(),
+      );
+      const responses = await Promise.all(promises);
+      const products = responses.map((res: any) => res.data[0]);
+
+      let exactProducts = products.filter((p: any) => +p.inStock > 0);
+      exactProducts.forEach((product: any, idx: number) => {
+        const productWithQuantity = {
+          ...product,
+          // quantity: getDisplayQuantity(singleOrder_products[idx]),
+        };
+        dispatch(addToCart(productWithQuantity));
+      });
+    } catch (error) {
+      console.error("Xatolik yuz berdi:", error);
+    }
+  };
+  return (
+    <div className="container cardInfo">
+      <div className="left-card-block">
+        <div className="title-block">
+          <div className="card-block-element-title">
+            <FaChevronLeft
+              onClick={() => {
+                back();
+                window.Telegram?.WebApp?.HapticFeedback?.impactOccurred("light"); // вибрация
+              }}
+            />
+            <h3>Заказ №{id}</h3>
+            <span>
+              {getDeclination(singleOrder_products.length, [
+                "товар",
+                "товара",
+                "товаров",
+              ])}{" "}
+            </span>
+          </div>
+          <div
+            className={
+              singleOrder?.statusName === "Ожидает получателя" ||
+              singleOrder?.statusName === "Выдан"
+                ? "greenStatsus status"
+                : singleOrder?.statusName === "Отменен"
+                ? "redStatsus status"
+                : singleOrder?.statusName === "Истек"
+                ? "orangeStatus"
+                : "status"
+            }
+          >
+            {singleOrder?.statusName}
+          </div>
+        </div>
+        <div className="order_address">
+          <p>{customDate(singleOrder?.orderDate)}</p>
+          {singleOrder.deliveryMethod == "Самовывоз"
+            ? "Самовывоз по адресу"
+            : "Доставка курьером на адрес"}{" "}
+          : {singleOrder?.address}
+        </div>
+
+        <div className="right_top">
+          <div className="title_date">
+            <h4>Ваш заказ</h4>
+            <div className="date">{customDate(singleOrder?.orderDate)}</div>
+          </div>
+          <div className="qty_price">
+            <span>Товары, {totalCount} шт.</span>
+            <span>{formatNumber(totalPrice)} ₽</span>
+          </div>
+          <div className="qty_price">
+            <span>Экономия</span>
+            <span>{formatNumber(totalSavings)} ₽</span>
+          </div>
+          <div className="paid">
+            <h1>Оплачено:</h1>
+            <h1>{formatNumber(singleOrder?.total)} ₽</h1>
+          </div>
+          <button onClick={() => ReOrder()}>Повторить заказ</button>
+
+          <div className="your_code">Ваш код заказа</div>
+          <p
+            className="copy_article"
+            onClick={() => {
+              toast.success("Скопировано");
+              navigator.clipboard.writeText(singleOrder.code);
+            }}
+          >
+            <IoCopyOutline /> {singleOrder.code}
+          </p>
+          <div className="qr_box">
+            <img src={qrUrl} alt="" />
+          </div>
+          <p>Сообщите этот код сотруднику пункта выдачи заказа.</p>
+        </div>
+
+        <div className="card-block-list">
+          {singleOrder_products.map((product: any) => {
+            return (
+              <div className="cart-item-row" key={product.productID}>
+                <div
+                  onClick={() => nav.push(`/item/${product.productID}`)}
+                  className="cart-item-picture"
+                >
+                  <img
+                    src={`https://api.toymarket.site/assets/products/${product.id}/image`}
+                    loading="lazy"
+                    alt="picture"
+                    onError={(e) => {
+                      e.currentTarget.src = noImg.src;
+                    }}
+                  />
+                </div>
+                <div className="cart-item-data">
+                  <div className="cart-item-label">
+                    <div className="cart-item-label-left">
+                      <p className="name">{product.name}</p>
+                      <span
+                        className="copy_article"
+                        onClick={() => {
+                          toast.success("Скопировано");
+                          navigator.clipboard.writeText(product.article);
+                        }}
+                      >
+                        <IoCopyOutline /> {product.article}
+                      </span>
+                      <div className="cart_item_details">
+                        {product.shoeSizeName &&
+                          `Размер: ${product?.shoeSizeName} `}
+                        {product.textColor && ` | Цвет: ${product?.textColor}`}
+                        {product.material &&
+                          ` | Материал: ${product?.material}`}
+                      </div>
+                      <p>{product?.discountedPrice} ₽</p>
+                    </div>
+                  </div>
+                  <div className="cart-right-block">
+                    <span>{formatNumber(product?.quantity)} шт</span>
+                    <p>
+                      {" "}
+                      {formatNumber(
+                        +product?.discountedPrice * +product?.quantity,
+                      )}{" "}
+                      ₽
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Umumiy hisob bloki */}
+      <div className="right">
+        <div className="right_top">
+          <div className="title_date">
+            <h4>Ваш заказ</h4>
+            <div className="date">{customDate(singleOrder?.orderDate)}</div>
+          </div>
+          <div className="qty_price">
+            <span>Товары, {totalCount} шт.</span>
+            <span> ₽</span>
+          </div>
+          <div className="qty_price">
+            <span>Экономия</span>
+            <span> ₽</span>
+          </div>
+          <div className="paid">
+            <h1>Оплачено:</h1>
+            <h1>{formatNumber(singleOrder?.total)} ₽</h1>
+          </div>
+          <button onClick={() => ReOrder()} className="order_info_repeatBtn">
+            Повторить заказ
+          </button>
+
+          <div className="your_code">Ваш код заказа</div>
+          <p
+            className="copy_article"
+            onClick={() => {
+              toast.success("Скопировано");
+              navigator.clipboard.writeText(singleOrder.code);
+            }}
+          >
+            <IoCopyOutline /> {singleOrder.code}
+          </p>
+          <div className="qr_box">
+            <img src={qrUrl} alt="" />
+          </div>
+          <p>Сообщите этот код сотруднику пункта выдачи заказа.</p>
+        </div>
+        <div className="right_bottom">
+          <Link href={"/"}>
+            <div>
+              <RiQuestionnaireLine />
+              Вопросы по заказу
+            </div>
+            <img src={arrow2Icon.src} alt="" />
+          </Link>
+          <Link href={"/"}>
+            <div>
+              <RiFileList3Line />
+              Чеки по заказу
+            </div>
+            <img src={arrow2Icon.src} alt="" />
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default OrderInfo;

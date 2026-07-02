@@ -1,0 +1,39 @@
+.row {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #333;
+  font-size: 16px;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.label {
+  width: 200px;
+  color: rgb(125, 125, 125);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0%;
+  text-align: left;
+}
+
+.value {
+  text-align: right;
+  color: rgb(255, 255, 255);
+  font-family: Inter;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  svg {
+    cursor: pointer;
+  }
+}

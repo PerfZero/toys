@@ -1,0 +1,59 @@
+footer {
+  padding: 30px 20px;
+}
+
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+footer .logoIcon {
+  cursor: pointer;
+  height: 57px;
+  width: 247px;
+}
+
+footer p {
+  color: var(--appearance-main-text-color);
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.phone {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  color: var(--appearance-main-text-color);
+  gap: 10px;
+  margin-top: 45px;
+}
+
+@media screen and (max-width: 1024px) {
+  footer {
+    padding-bottom: calc(
+      30px + var(--mobile-bottom-bar-height) + var(--mobile-bottom-bar-gap) * 2
+    );
+  }
+
+  body.telegram-webapp footer {
+    padding-bottom: calc(
+      30px + var(--mobile-bottom-bar-height) + var(--mobile-bottom-bar-gap) * 2 + var(--tg-safe-area-inset-bottom)
+    );
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .phone {
+    align-items: flex-start;
+    margin-top: 0;
+  }
+}

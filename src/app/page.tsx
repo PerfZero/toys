@@ -1,66 +1,82 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import Banner from "@/components/banner/Banner";
+import Catalog from "@/components/catalog/Catalog";
+import formatNumber from "@/lib/utils";
+import "./home.css";
 
 export default function Home() {
+  const [totalPrice, setTotalPrice] = useState(0);
+  const cart = useSelector((state: any) => state.cart.items);
+
+  const getDisplayQuantity = (product: any) => {
+    if (!product) return 0;
+    return Number(product.quantity);
+  };
+
+  const getRetailPrice = (product: any) =>
+    Number(product?.retail_price ?? product?.discountedPrice ?? 0);
+
+  const getMarketingPrice = (product: any) =>
+    Number(product?.marketing_price ?? product?.price ?? 0);
+
+  const getCurrentPrice = (product: any) => {
+    const displayQuantity = getDisplayQuantity(product);
+
+    if (
+      (displayQuantity >=
+        Number(
+          product?.recomendedMinimalSize ??
+            product?.recommended_order_quantity ??
+            Infinity,
+        ) &&
+        getRetailPrice(product)) ||
+      product?.recomendedMinimalSizeEnabled === false ||
+      Number(
+        product?.recomendedMinimalSize ??
+          product?.recommended_order_quantity ??
+          1,
+      ) <= 1
+    ) {
+      return getRetailPrice(product);
+    }
+    return getMarketingPrice(product);
+  };
+
+  useEffect(() => {
+    const totalPrice = cart?.reduce((acc: number, product: any) => {
+      const displayQuantity = getDisplayQuantity(product);
+      const availabilityId = Number(
+        product?.accessabilitySettingsID ??
+          (product?.availability === "needs_preorder"
+            ? 223
+            : product?.availability === "always_available"
+              ? 224
+              : 222),
+      );
+      const currentPrice =
+        availabilityId === 223
+          ? Number(product?.prepayAmount ?? product?.prepay_amount ?? 0)
+          : getCurrentPrice(product);
+
+      acc += displayQuantity * currentPrice;
+      return acc;
+    }, 0);
+    setTotalPrice(parseInt(String(totalPrice)));
+  }, [cart]);
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="home">
+      <Banner />
+      <Catalog />
+      {totalPrice > 0 && (
+        <div className="go-to-order-wrap ">
+          В корзине товаров на {formatNumber(totalPrice)} ₽
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      )}
     </div>
   );
 }

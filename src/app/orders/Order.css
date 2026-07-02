@@ -1,0 +1,288 @@
+.orders {
+  width: 100%;
+  padding: 20px;
+  max-height: none;
+
+  .card-block-element-title {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+    margin-bottom: 39px;
+
+    svg {
+      display: none;
+    }
+
+    h3 {
+      color: rgb(217, 217, 217);
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 39px;
+      letter-spacing: -5%;
+      text-align: left;
+    }
+    span {
+      color: rgb(125, 125, 125);
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 17px;
+      letter-spacing: 0%;
+      text-align: left;
+    }
+  }
+
+  .card-block-element-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    .container-order {
+      height: 177px;
+      background: #262626;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 26px 42px 21px 26px;
+      cursor: pointer;
+
+      .cart-item-label {
+        display: flex;
+        flex-direction: column;
+
+        .title_block {
+          display: flex;
+          align-items: center;
+
+          .title_block_left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            h3 {
+              color: rgb(255, 255, 255);
+              font-size: 20px;
+              font-weight: 700;
+              line-height: 29px;
+              letter-spacing: -5%;
+            }
+
+            .dateValue {
+              color: rgb(255, 255, 255);
+              font-size: 16px;
+              font-weight: 400;
+              line-height: 22px;
+              letter-spacing: -5%;
+              margin-left: 20px;
+            }
+          }
+
+          p {
+            /* padding: 6px 66px; */
+            width: 186px;
+            height: 30px;
+            border-radius: 8px;
+            background: rgb(15, 120, 241);
+            color: rgb(255, 255, 255);
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 19px;
+            letter-spacing: 0%;
+            margin-left: 60px;
+            display: grid;
+            place-items: center;
+          }
+
+          .greenStatsus {
+            background: rgb(31, 183, 58);
+          }
+
+          .redStatsus {
+            background: rgb(253, 57, 121);
+          }
+
+          .orangeStatus {
+            background: rgb(255 109 0);
+          }
+        }
+
+        .order_address {
+          color: rgb(125, 125, 125);
+          font-size: 16px;
+          font-weight: 400;
+          line-height: 19px;
+          margin-top: 14px;
+
+          display: -webkit-box;
+          -webkit-line-clamp: 2; /* Maksimum 2 qator */
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .dateLabel {
+          color: rgb(255, 255, 255);
+          font-size: 18px;
+          font-weight: 400;
+          line-height: 22px;
+          letter-spacing: -5%;
+          margin-top: 11px;
+        }
+
+        .price-orders {
+          color: rgb(255, 255, 255);
+          font-size: 18px;
+          font-weight: 700;
+          line-height: 21px;
+          letter-spacing: -5%;
+          margin-top: 18px;
+        }
+      }
+
+      .btn_more {
+        padding: 6px 16px 7px;
+        border-radius: 10px;
+        background: #0003;
+        color: rgb(255, 255, 255);
+        font-size: 18px;
+        font-weight: 500;
+        line-height: 22px;
+        letter-spacing: -5%;
+        border: none;
+      }
+    }
+  }
+}
+
+/* media */
+
+@media screen and (max-width: 930px) {
+  .orders {
+    .card-block-element-cards {
+      .container-order {
+        padding: 16px;
+        position: relative;
+
+        .btn_more {
+          position: absolute;
+          bottom: 20px;
+          right: 10px;
+        }
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .orders {
+    .card-block-element-title {
+      margin-top: 36px;
+      gap: 22px;
+
+      svg {
+        color: #fff;
+        font-size: 25px;
+        display: block;
+      }
+
+      h3 {
+        font-size: 24px;
+      }
+      span {
+        display: none;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 630px) {
+  .orders {
+    padding: 10px;
+    .card-block-element-cards {
+      gap: 10px;
+
+      .container-order {
+        height: 215px;
+        padding: 13px 16px;
+
+        .cart-item-label {
+          .title_block {
+            align-items: flex-start;
+            justify-content: space-between;
+            .title_block_left {
+              align-items: flex-start;
+              flex-direction: column;
+              gap: 13px;
+
+              .dateValue {
+                margin-left: 0;
+              }
+            }
+            p {
+              margin-left: 0;
+            }
+          }
+          .price-orders {
+            span {
+              display: none;
+            }
+          }
+        }
+
+        .btn_more {
+          position: absolute;
+          bottom: 20px;
+          right: 10px;
+        }
+      }
+    }
+  }
+}
+
+.orders {
+  color: var(--appearance-main-text-color);
+}
+
+.orders .card-block-element-title h3,
+.orders .container-order h3,
+.orders .dateLabel {
+  color: var(--appearance-main-text-color);
+}
+
+.orders .card-block-element-title span,
+.orders .dateValue,
+.orders .order_address {
+  color: var(--appearance-secondary-text-color);
+}
+
+.orders .container-order {
+  background: var(--appearance-info-blocks-background-color);
+}
+
+.orders .price-orders {
+  color: var(--appearance-order-price-text-color);
+}
+
+.orders .btn_more {
+  background: var(--appearance-service-button-background-color);
+  color: var(--appearance-service-button-text-color);
+}
+
+.orders .title_block p {
+  background: var(--appearance-order-status-new-background-color);
+  color: var(--appearance-order-status-new-text-color);
+}
+
+.orders .title_block p.greenStatsus {
+  background: var(--appearance-order-status-issued-background-color);
+  color: var(--appearance-order-status-issued-text-color);
+}
+
+.orders .title_block p.redStatsus {
+  background: var(--appearance-order-status-cancelled-background-color);
+  color: var(--appearance-order-status-cancelled-text-color);
+}
+
+.orders .title_block p.orangeStatus {
+  background: var(--appearance-order-status-expired-background-color);
+  color: var(--appearance-order-status-expired-text-color);
+}
