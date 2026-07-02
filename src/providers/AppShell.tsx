@@ -1,47 +1,41 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { Header } from "@/components/header/Header";
-import Footer from "@/components/footer/Footer";
 import AuthGuard from "./AuthGuard";
 
 /**
  * AppShell — клиентская оболочка приложения.
  *
- * Рендерит Header/Footer везде, кроме страницы /auth (как было в src/App.jsx:
- *   { !isAuthPage && <Header/> } / { !isAuthPage && <Footer/> }),
- * и оборачивает страницы в AuthGuard (защита /orders, /orderInfo/*).
+ * ВАЖНО для SSR/SEO: Header/Footer рендерятся только на клиенте (dynamic ssr:false),
+ * т.к. они используют RTK Query, Redux cart, window — это вызвало бы hydration
+ * mismatch на сервере. Контент страниц (children) при этом рендерится на сервере
+ * с реальными данными — именно это даёт SEO.
  *
- * mounted-флаг: TMA — клиентское приложение, но Next рендерит первый кадр на
- * сервере. Сервер не имеет доступа к window.Telegram, localStorage, cart из
- * localStorage и т.п., из-за чего возникал hydration-mismatch (badge корзины,
- * --tg-viewport-height от Telegram SDK). Поэтому реальный контент рендерим
- * только после монтирования на клиенте — сервер и первый клиентский кадр
- * отдают одинаковый пустой shell, расхождений нет.
+ * Header/Footer — навигация, не критичны для поисковиков; появляются после
+ * гидратации (в TMA внутри WebView это мгновенно).
  */
+const Header = dynamic(
+  () => import("@/components/header/Header").then((m) => ({ default: m.Header })),
+  { ssr: false },
+);
+const Footer = dynamic(() => import("@/components/footer/Footer"), {
+  ssr: false,
+});
+
 export default function AppShell({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // До монтирования на клиенте — пустой shell (совпадает с серверным кадром).
-  if (!mounted) {
-    return <div className="app" />;
-  }
-
   const isAuthPage = pathname === "/auth";
 
   return (
     <div className="app">
       {!isAuthPage && <Header />}
+      {/* AuthGuard не блокирует публичные роуты — для них сразу возвращает children.
+          Защищает только /orders и /orderInfo (показывает auth-loading до проверки). */}
       <AuthGuard>{children}</AuthGuard>
       {!isAuthPage && <Footer />}
     </div>

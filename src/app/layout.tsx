@@ -10,15 +10,11 @@ import AppShell from "@/providers/AppShell";
 import { siteConfig } from "@/lib/siteConfig";
 
 /**
- * Это Telegram Mini App — полностью клиентское приложение внутри WebView.
- * SSR/prerender здесь не нужен (и невозможен: страницы обращаются к window,
- * localStorage, window.Telegram при инициализации). Отключаем статическую
- * генерацию, чтобы сборка не падала на браузерных API.
- *
- * Примечание: robots.ts и sitemap.ts — server-only route-хендлеры,
- * они НЕ затрагиваются force-dynamic страниц и работают корректно.
+ * Корневой layout. force-ddynamic УБРАН — публичные страницы (/item, /, /cat, /new)
+ * рендерятся на сервере с реальным контентом для SEO. Приватные роуты
+ * (/cart, /orders, /orderInfo, /auth) помечены 'use client' и сами по себе
+ * динамические. Telegram SDK пишет в html.style, поэтому suppressHydrationWarning.
  */
-export const dynamic = "force-dynamic";
 
 const { url, title, description, locale } = siteConfig;
 
