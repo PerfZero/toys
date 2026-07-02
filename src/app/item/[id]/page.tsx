@@ -29,6 +29,9 @@ import { setSearchQuery } from "@/store/slices/searchSlice";
 import loader from "@/components/catalog/loader1.svg";
 import { SwiperSlide, Swiper } from "swiper/react";
 import { FreeMode } from "swiper/modules";
+// swiper-CSS подключаем явно: в Next.js стили не «протекают» из ProductSlider.
+import "swiper/css";
+import "swiper/css/free-mode";
 
 const getStock = (product: any) =>
   Number(product?.inStock ?? product?.in_stock_count ?? 0);

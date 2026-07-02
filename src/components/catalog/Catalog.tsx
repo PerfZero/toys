@@ -11,6 +11,10 @@ import "./Catalog.css";
 import loader from "./loader1.svg";
 import { FreeMode } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
+// В CRA базовые стили swiper подхватывались глобально (из ProductSlider).
+// В Next.js CSS не «протекает» между компонентами — подключаем явно.
+import "swiper/css";
+import "swiper/css/free-mode";
 import ProductCard, { getGroupKey, canShowGroup } from "./ProductCard";
 
 const HOME_SECTION_PRODUCT_LIMIT = 50;

@@ -110,20 +110,20 @@ export const Header = () => {
           onChange={handleSearchChange}
         />
         <div className="header_search_icon" onClick={() => nav.push(`/search`)}>
-          <img src={searchIcon} alt="" />
+          <img src={searchIcon.src} alt="" />
         </div>
       </form>
 
       <div className="header__right">
         <div className="bottomBar">
           <div className={`icon ${modal1 && "activeIcon"}`}>
-            <img src={phoneIcon} onClick={() => setModal1(!modal1)} alt="" />
+            <img src={phoneIcon.src} onClick={() => setModal1(!modal1)} alt="" />
           </div>
           <div className={`icon ${modal2 && "activeIcon"}`}>
-            <img src={caseIcon} onClick={() => setModal2(!modal2)} alt="" />
+            <img src={caseIcon.src} onClick={() => setModal2(!modal2)} alt="" />
           </div>
           <div className="icon">
-            <img src={cartIcon} onClick={() => nav.push("/cart")} alt="" />
+            <img src={cartIcon.src} onClick={() => nav.push("/cart")} alt="" />
             {cart?.length > 0 && (
               <div className="card-count-number">
                 <p>{cart?.length}</p>
@@ -131,7 +131,7 @@ export const Header = () => {
             )}
           </div>
           <div onClick={() => nav.push("/search")} className="icon mobileSearchIcon">
-            <img src={searchIcon} alt="" />
+            <img src={searchIcon.src} alt="" />
           </div>
         </div>
 
@@ -142,7 +142,7 @@ export const Header = () => {
           {openSidebar ? (
             <FiX size={24} color="#fff" />
           ) : (
-            <img src={menuIcon} alt="" />
+            <img src={menuIcon.src} alt="" />
           )}
         </div>
       </div>
@@ -157,7 +157,7 @@ export const Header = () => {
               impactOccurred("light");
             }}
           >
-            История заказов <img src={arrowIcon} alt="" />
+            История заказов <img src={arrowIcon.src} alt="" />
           </div>
           <p
             onClick={() => {
@@ -167,7 +167,7 @@ export const Header = () => {
             }}
             className="category"
           >
-            Новинки <img src={arrowIcon} alt="" />
+            Новинки <img src={arrowIcon.src} alt="" />
           </p>
 
           {sidebarData.map((category: any, i: number) => (
@@ -181,7 +181,7 @@ export const Header = () => {
                   style={{
                     transform: openIndex === i ? "rotate(90deg)" : "",
                   }}
-                  src={arrowIcon}
+                  src={arrowIcon.src}
                   alt=""
                 />
               </p>
@@ -203,7 +203,7 @@ export const Header = () => {
                           transform:
                             openSubIndex === `${i}-${j}` ? "rotate(90deg)" : "",
                         }}
-                        src={arrowIcon}
+                        src={arrowIcon.src}
                         alt=""
                       />
                     </p>
@@ -220,7 +220,7 @@ export const Header = () => {
                           key={k}
                         >
                           {model.name}
-                          <img alt="" src={arrowIcon} />
+                          <img alt="" src={arrowIcon.src} />
                         </p>
                       ))}
                   </div>
