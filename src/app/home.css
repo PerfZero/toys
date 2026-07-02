@@ -7,7 +7,9 @@
   box-shadow: none;
   box-shadow: 0 -6px 16px -16px #ababab;
   color: #fff;
-  display: flex;
+  /* Скрыт по умолчанию (на десктопе не нужен). Виден только в TMA —
+     body.telegram-webapp добавляется TelegramProvider на клиенте. */
+  display: none;
   flex-wrap: wrap;
   font-size: 13px;
   justify-content: center;
@@ -23,6 +25,11 @@
   user-select: none;
   width: 100%;
   z-index: 101;
+}
+
+/* Показываем бейдж суммы корзины только внутри Telegram Mini App. */
+body.telegram-webapp .go-to-order-wrap {
+  display: flex;
 }
 
 @media screen and (max-width: 1024px) {

@@ -293,6 +293,36 @@ body.telegram-webapp .modal1 {
     }
 }
 
+/*
+ * TMA — всегда мобильный интерфейс, независимо от ширины окна.
+ * Web-версия Telegram (web.telegram.org) открывает Mini App в широком окне
+ * (>1024px), поэтому media-query выше не срабатывает, и нижняя навигация
+ * оставалась вверху страницы. Применяем мобильную компоновку явно для
+ * body.telegram-webapp ВНЕ media-query.
+ */
+body.telegram-webapp .mobileSearchIcon {
+    display: flex !important;
+}
+
+body.telegram-webapp .header .search {
+    display: none;
+}
+
+body.telegram-webapp .header .bottomBar {
+    max-width: 413px;
+    position: fixed;
+    bottom: calc(var(--mobile-bottom-bar-gap) + var(--tg-safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2a2a2a;
+    z-index: 444;
+    padding: 8px;
+}
+
+body.telegram-webapp .header .bottomBar .icon {
+    background-color: #000;
+}
+
 @media (min-width: 320px) and (max-width: 480px) {
     .dropdown {
         min-width: calc(100% - 24px);

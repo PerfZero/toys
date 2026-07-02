@@ -88,11 +88,14 @@ export const Header = () => {
 
   const isWideScreen =
     typeof window !== "undefined" ? +window.innerWidth > 768 : true;
+  // В TMA Header всегда виден (на всех страницах, при любой ширине окна).
+  const isTma =
+    typeof window !== "undefined" && document.body.classList.contains("telegram-webapp");
 
   return (
     <div
       style={{
-        display: pathname === "/" || isWideScreen ? "flex" : "none",
+        display: isTma || pathname === "/" || isWideScreen ? "flex" : "none",
       }}
       className="container header"
     >
