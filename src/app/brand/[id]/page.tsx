@@ -1,263 +1,82 @@
-"use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, useMemo } from "react";
-import { useLazyGetProductsByBrandQuery } from "@/store/api/productsApi";
-import filterIcon from "@/img/filter.svg";
-import sortIcon from "@/img/sort.svg";
-import { useSelector } from "react-redux";
-import { useParams } from "next/navigation";
-import FilterModal from "@/components/categoryProducts/FilterModal";
-import { BsChevronLeft } from "react-icons/bs";
-import "@/components/categoryProducts/CategoryProducts.css";
-import SortModal from "@/components/categoryProducts/SortModal";
-import { useGoBackOrHome } from "@/lib/utils";
-import loader from "@/components/catalog/loader1.svg";
-import { BiPlus } from "react-icons/bi";
-import ProductCard, {
-  getGroupKey,
-  canShowGroup,
-  getStock,
-  getPrice,
-} from "@/components/catalog/ProductCard";
+import type { Metadata } from "next";
+import { getProductsByBrand, getBrandName } from "@/lib/ssr-api";
+import ProductCardPreview from "@/components/catalog/ProductCardPreview";
+import BrandProductsClient from "@/components/categoryProducts/BrandProductsClient";
+import { siteConfig } from "@/lib/siteConfig";
 
-function BrandProducts() {
-  const { id } = useParams<{ id: string }>();
+// Свежие данные на каждый запрос (цены/наличие актуальны).
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
 
-  const [getProductsByBrand, { isLoading }] = useLazyGetProductsByBrandQuery();
-  const searchQuery = useSelector((state: any) => state.search.searchQuery);
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  // Имя тянем из /products/brands — сырые продукты его не содержат.
+  const name = (await getBrandName(id)) || "Товары";
+  const title = `${name} — купить в Toymarket`;
+  const description = `${name}. Купить в интернет-магазине Toymarket: большой выбор, доставка по России, оплата онлайн.`;
 
-  const [products, setProducts] = useState<any[]>([]);
-  const [categoryName, setCategoryName] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [statusAccordionOpen, setStatusAccordionOpen] = useState(false);
-  const [statusPriceOpen, setStatusPriceOpen] = useState(false);
-  const [pendingFilters, setPendingFilters] = useState({
-    status: "all",
-    priceFrom: "",
-    priceTo: "",
-    article: "",
-  });
-  const [isSortOpen, setIsSortOpen] = useState(false);
-  const [sortOrder, setSortOrder] = useState("");
-
-  const [hasMore, setHasMore] = useState(true);
-  const [offset, setOffset] = useState(0);
-  const [buttonLoading, setButtonLoading] = useState(false);
-  const limit = 50;
-
-  const fetchMoreData = () => {
-    if (hasMore) {
-      setButtonLoading(true);
-      setOffset(offset + 50);
-    } else {
-      setHasMore(false);
-    }
+  return {
+    title,
+    description,
+    alternates: { canonical: `/brand/${id}` },
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url: `${siteConfig.url}/brand/${id}`,
+    },
   };
-
-  useEffect(() => {
-    setOffset(0);
-    setHasMore(true);
-  }, [id]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setButtonLoading(true);
-
-      const { data: products1 } = await getProductsByBrand({
-        id,
-        limit,
-        offset,
-      });
-
-      const productsData = products1?.reduce((unique: any[], product: any) => {
-        const isDuplicate = unique.some((p: any) => {
-          const { _id, id, ...pRest } = p;
-          const { _id: _, id: __, ...productRest } = product;
-
-          return JSON.stringify(pRest) === JSON.stringify(productRest);
-        });
-
-        if (product.isMultiProduct === false || !isDuplicate) {
-          unique.push(product);
-        }
-
-        return unique;
-      }, []);
-
-      setButtonLoading(false);
-      setProducts(productsData || []);
-      setFilteredProducts(productsData || []);
-      setCategoryName(productsData?.[0]?.tradeMarkName || "Товары");
-
-      if ((products1 || []).length < 50) {
-        setHasMore(false);
-      }
-    };
-
-    fetchData();
-  }, [id, offset, getProductsByBrand]);
-
-  useEffect(() => {
-    let result = [...products];
-
-    if (pendingFilters.status === "inStock") {
-      result = result.filter((product: any) => getStock(product) > 0);
-    } else if (pendingFilters.status === "outOfStock") {
-      result = result.filter((product: any) => getStock(product) === 0);
-    }
-
-    if (pendingFilters.priceFrom) {
-      result = result.filter(
-        (product: any) => getPrice(product) >= Number(pendingFilters.priceFrom)
-      );
-    }
-
-    if (pendingFilters.priceTo) {
-      result = result.filter(
-        (product: any) => getPrice(product) <= Number(pendingFilters.priceTo)
-      );
-    }
-
-    if (pendingFilters.article) {
-      result = result.filter((product: any) =>
-        product.article
-          .toLowerCase()
-          .includes(pendingFilters.article.toLowerCase())
-      );
-    }
-
-    if (searchQuery) {
-      result = result.filter((product: any) =>
-        product.article.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    setFilteredProducts(result);
-  }, [products, pendingFilters, searchQuery]);
-
-  const productGroups = useMemo(() => {
-    const groups = new Map();
-
-    filteredProducts.forEach((product: any) => {
-      const key = getGroupKey(product);
-
-      if (!groups.has(key)) {
-        groups.set(key, {
-          id: key,
-          products: [],
-        });
-      }
-
-      groups.get(key).products.push(product);
-    });
-
-    return Array.from(groups.values()).filter((group: any) =>
-      canShowGroup(group.products)
-    );
-  }, [filteredProducts]);
-
-  const handleSearchChange = (e: any) => {
-    const value = e.target.value.toLowerCase();
-
-    setFilteredProducts(
-      products.filter((product: any) => product.name.toLowerCase().includes(value))
-    );
-  };
-
-  const back = useGoBackOrHome();
-
-  if (isLoading) {
-    return (
-      <div className="loader">
-        <img width={100} src={loader.src} alt="" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="container categoryProducts">
-      <div className="categoryProducts_title">
-        <div onClick={back} className="left">
-          <BsChevronLeft />
-          <span>{categoryName}</span>
-        </div>
-
-        <input
-          onChange={handleSearchChange}
-          className="search_input"
-          type="text"
-          placeholder="Поиск...."
-        />
-
-        <div className="right">
-          <div className="form-filter">
-            <button onClick={() => setIsFilterOpen(true)}>
-              <img src={filterIcon.src} alt="filter icon" />
-              <span style={{ color: "#363636" }}>Фильтры</span>
-            </button>
-          </div>
-
-          <div className="form-sort">
-            <button onClick={() => setIsSortOpen(true)}>
-              <img src={sortIcon.src} alt="sort icon" />
-              <span style={{ color: "#363636" }}>Сортировка</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {productGroups.length === 0 ? (
-        <div className="noProducts">
-          <p className="noMore">Товаров нет!</p>
-        </div>
-      ) : (
-        <>
-          <div className="catalogItem_cards">
-            {productGroups.map((group: any) => (
-              <ProductCard key={group.id} products={group.products} />
-            ))}
-          </div>
-
-          {buttonLoading && hasMore && (
-            <div className="loader" style={{ marginTop: 20 }}>
-              <img width={100} src={loader.src} alt="" />
-            </div>
-          )}
-
-          {!hasMore && filteredProducts.length > 0 && (
-            <p className="noMore">Других товаров нет!</p>
-          )}
-
-          {hasMore && !buttonLoading && (
-            <button className="load_more" onClick={fetchMoreData}>
-              <BiPlus /> Показать еще
-            </button>
-          )}
-        </>
-      )}
-
-      <FilterModal
-        isFilterOpen={isFilterOpen}
-        setIsFilterOpen={setIsFilterOpen}
-        pendingFilters={pendingFilters}
-        setPendingFilters={setPendingFilters}
-        statusAccordionOpen={statusAccordionOpen}
-        setStatusAccordionOpen={setStatusAccordionOpen}
-        statusPriceOpen={statusPriceOpen}
-        setStatusPriceOpen={setStatusPriceOpen}
-      />
-
-      <SortModal
-        isSortOpen={isSortOpen}
-        setIsSortOpen={setIsSortOpen}
-        sortOrder={sortOrder}
-        setSortOrder={setSortOrder}
-        filteredProducts={filteredProducts}
-        setFilteredProducts={setFilteredProducts}
-      />
-    </div>
-  );
 }
 
-export default BrandProducts;
+export default async function BrandProductsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const [products, name] = await Promise.all([
+    getProductsByBrand(id, 50),
+    getBrandName(id),
+  ]);
+  const displayName = name || "Товары";
+
+  /**
+   * Статичный SEO-блок: виден поисковикам без JS (название бренда, описание,
+   * список товаров). Дублирует ключевые данные, которые BrandProductsClient
+   * рендерит интерактивно — даёт краулерам реальный контент.
+   * Скрыт визуально (screen-reader/SEO-friendly), т.к. поверх него — интерактив.
+   */
+  return (
+    <>
+      <section
+        aria-label={`Товары бренда ${displayName}`}
+        style={{
+          position: "absolute",
+          left: -9999,
+          width: 1,
+          height: 1,
+          overflow: "hidden",
+        }}
+      >
+        <h1>{displayName}</h1>
+        <p>
+          {displayName}. Купить в интернет-магазине Toymarket: большой выбор,
+          доставка по России, оплата онлайн.
+        </p>
+        {products.map((product: any) => (
+          <ProductCardPreview
+            key={product.id || product._id}
+            product={product}
+          />
+        ))}
+      </section>
+
+      {/* Интерактивная сетка бренда (фильтры, сортировка, пагинация). */}
+      <BrandProductsClient initialProducts={products} id={id} />
+    </>
+  );
+}

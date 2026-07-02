@@ -97,3 +97,87 @@ export async function getProductsByTypeSSR(
     return [];
   }
 }
+
+/** Товары по id подкатегории (первые limit). */
+export async function getProductsBySubcategory(
+  subcategoryId: string,
+  limit = 50,
+): Promise<Any[]> {
+  try {
+    const r = await fetch(
+      `${API_URL}/products?subcategory_ids=${subcategoryId}&limit=${limit}`,
+      NO_STORE,
+    );
+    if (!r.ok) return [];
+    return toArray(await r.json());
+  } catch {
+    return [];
+  }
+}
+
+/** Товары по id бренда (первые limit). */
+export async function getProductsByBrand(
+  brandId: string,
+  limit = 50,
+): Promise<Any[]> {
+  try {
+    const r = await fetch(
+      `${API_URL}/products?query=brand_id==${brandId}&limit=${limit}`,
+      NO_STORE,
+    );
+    if (!r.ok) return [];
+    return toArray(await r.json());
+  } catch {
+    return [];
+  }
+}
+
+// ── Имена сущностей для generateMetadata (сырые продукты не содержат имён) ──
+
+/** Имя бренда по id (из /products/brands). */
+export async function getBrandName(brandId: string): Promise<string> {
+  try {
+    const r = await fetch(`${API_URL}/products/brands`, NO_STORE);
+    if (!r.ok) return "";
+    const brand = (await r.json()).find(
+      (b: Any) => String(b.id) === String(brandId),
+    );
+    return brand?.name || "";
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Имя подкатегории или типа по id из дерева категорий.
+ * kind: "subcat" | "type". Возвращает "" если не найдено.
+ */
+export async function getCategoryTreeNodeName(
+  id: string,
+  kind: "subcat" | "type",
+): Promise<string> {
+  try {
+    const r = await fetch(`${API_URL}/products/categories`, {
+      ...NO_STORE,
+      headers: { Accept: "application/json" },
+    });
+    if (!r.ok) return "";
+    const categories = await r.json();
+
+    for (const cat of categories) {
+      for (const sub of cat.subcategories ?? []) {
+        if (kind === "subcat" && String(sub.id) === String(id)) {
+          return sub.name || "";
+        }
+        for (const type of sub.types ?? []) {
+          if (kind === "type" && String(type.id) === String(id)) {
+            return type.name || "";
+          }
+        }
+      }
+    }
+    return "";
+  } catch {
+    return "";
+  }
+}
